@@ -10,28 +10,34 @@
 
 	<!-- this should match the root <record_set/> element -->
 	<xsl:template match="/">
-		<xsl:apply-templates select="XML_RECORD[TOP_LEVEL_FLAG='Y']"/>
+		<ead>
+			<!-- start at every top-level record and recurse through the hierarchy -->
+			<xsl:apply-templates select="//XML_RECORD[REFD_LOWEREXIST]"/>			
+		</ead>
 	</xsl:template>
 
-	<!-- -->
+	<!-- recursive record template -->
 	<xsl:template match="XML_RECORD">
-		<xsl:choose>
+		<archdesc level="{LEVEL_DESC}">
+			<!-- HERE BE EAD HEADER -->
+			<did>
+				<xsl:value-of select="SISN"/>
+			</did>
 
-			<!-- start at every top-level record and recurse through the hierarchy -->
-			<xsl:when test="TOP_LEVEL_FLAG='Y'">
+			<xsl:if test="boolean(LOWER_LEVEL)">
 
-				<!-- HERE BE EAD HEADER -->
-
-				<xsl:variable name="refd_higher" select="REFD_HIGHER"/>
-				<xsl:apply-templates select="XML_RECORD[REFD=$refd_higher]"/>
-			</xsl:when>
-			
-			<!-- embed this record in an existing EAD description -->
-			<xsl:otherwise>
 				<!-- HERE BE DESCGROUP -->
-			</xsl:otherwise>
+				<descgrp>
 
-		</xsl:choose>		
+					<xsl:for-each select="LOWER_LEVEL">
+						<xsl:variable name="lower_level_code" select="LOWER_CODE"/>
+
+						<xsl:apply-templates select="//XML_RECORD[REFD=$lower_level_code]"/>
+					</xsl:for-each>
+
+				</descgrp>
+			</xsl:if>
+		</archdesc>
 	</xsl:template>
 	
 </xsl:stylesheet>
